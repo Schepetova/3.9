@@ -1,0 +1,2 @@
+просмотр всех правил:
+curl http://localhost:8081/api/controls | json_pp -json_opt pretty

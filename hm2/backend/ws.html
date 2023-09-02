@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend test</title>
+  </head>
+
+  <body onload="init()">
+    <h1>Frontend client</h1>
+    <p> Test message. See console.
+   </p>
+    <script type="text/javascript">
+      let ws;
+      let controls = [];
+      let idToParamName = {};
+      let sessionID;
+
+      function createControls() {
+        let controls = [];
+        let control1 = {};
+        let control2 = {};
+        let control3 = {};
+        let control4 = {};
+        let control5 = {};
+        let control6 = {};
+
+        control1["description"] = "complex_control__11";
+        control1["type"] = "complex";
+        control1["rules"] = [{ param_id: 1,
+                               check_low_param: true,
+                               low_alarm_value: 9,
+                               check_high_param: true,
+                               high_alarm_value: 33 },
+                             { param_id: 2,
+                               check_low_param: true,
+                               low_alarm_value: 10,
+                               check_high_param: true,
+                               high_alarm_value: 20 },
+                             { param_id: 3,
+                               check_low_param: true,
+                               low_alarm_value: 1,
+                               check_high_param: true,
+                               high_alarm_value: 2 }];
+        controls.push(control1);
+        
+        control2["description"] = "complex_control_good";
+        control2["type"] = "complex";
+        control2["rules"] = [{ param_id: 1,
+                               check_low_param: true,
+                               low_alarm_value: 0,
+                               check_high_param: true,
+                               high_alarm_value: 330 },
+                             { param_id: 2,
+                               check_low_param: true,
+                               low_alarm_value: 0,
+                               check_high_param: true,
+                               high_alarm_value: 20 },
+                             { param_id: 3,
+                               check_low_param: true,
+                               low_alarm_value: 1,
+                               check_high_param: true,
+                               high_alarm_value: 2 }];
+        //controls.push(control2);
+
+        control3["description"] = "discrete_control_1";
+        control3["type"] = "discrete";
+        control3["rules"] = [{ param_id: 1,
+                               check_low_param: true,
+                               low_alarm_value: 10,
+                               check_high_param: true,
+                               high_alarm_value: 20 }];
+        //controls.push(control3);
+   
+        control4["description"] = "discrete_control_2";
+        control4["type"] = "discrete";
+        control4["rules"] = [{ param_id: 2,
+                               check_low_param: true,
+                               low_alarm_value: 20,
+                               check_high_param: true,
+                               high_alarm_value: 30 }];
+        //controls.push(control4);
+
+        control5["description"] = "discrete_control_3";
+        control5["type"] = "discrete";
+        control5["rules"] = [{ param_id: 3,
+                               check_low_param: true,
+                               low_alarm_value: 30,
+                               check_high_param: true,
+                               high_alarm_value: 40 }];
+        //controls.push(control5);
+
+        control6["description"] = "discrete_control_good";
+        control6["type"] = "discrete";
+        control6["rules"] = [{ param_id: 4,
+                               check_low_param: true,
+                               low_alarm_value: 0,
+                               check_high_param: true,
+                               high_alarm_value: 100 }];
+        //controls.push(control6);
+        
+        console.log(JSON.stringify(controls, null, 2));
+        return controls;
+      }
+      
+      function sendControls(controls, url) {
+        for (let c of controls) {
+          //console.log(c);
+          c["sessionID"] = sessionID;
+          //console.log('control with session: ', c);
+          sendPostRequest(c, url);
+        }
+      }
+
+      //"http://localhost:8081/api/controls/"
+      async function sendPostRequest(data, url) {
+        const opts = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        };
+
+        try {
+          //console.log("post data: ", opts.body)
+          const response = await fetch(url, opts);
+          if (!response.ok) {
+            console.log("PostRequest error: ", response.statusText);
+            throw new Error(response.statusText);
+          }
+          const result = await response.json();
+          //console.log(result);
+          return result;
+        } catch(error) {
+          //console.log(error);
+          throw error;
+        } 
+      }
+        
+      async function testAlgoSet(url) {
+        let good = {};
+        good["id"] = "16aewrh46GNJO8wewQWGt2";
+        good["params"] = [{ id: 1,
+                             value: 33 },
+                           { id: 2,
+                             value: -20 },
+                           { id: 3,
+                             value: 24469924778 },
+                           { id: 4,
+                             value: 0.20 },
+                           { id: 5,
+                             value: -0 }];
+        try {
+          const data = await sendPostRequest(good, url);
+          console.log("expected good", data);
+        } catch(e) {
+          console.log(e);
+        }
+        /*
+        let bad_num = {};
+        bad_num["id"] = "36aewrh46GNJO8wewQWGt2";
+        bad_num["params"] = [{ id: 1,
+                               value: 3g3 },
+                             { id: 2,
+                               high_alarm_value: -20 },
+                             { id: 3,
+                               high_alarm_value: 24469924778 },
+                             { id: 4,
+                               high_alarm_value: 0.20 },
+                             { id: 5,
+                               value: -0 }];
+        try {
+          await sendPostRequest(bad_num, url);
+          console.log(data);
+        } catch(e) {
+          console.log(e);
+        }
+        */
+        let good_str = {};
+        good_str["id"] = "26aewrh46GNJO8wewQWGt2";
+        good_str["params"] = [{ id: 1,
+                               value: "33" },
+                             { id: 2,
+                               value: "-20" },
+                             { id: 3,
+                               value: "24469924778" },
+                             { id: 4,
+                               value: "0.20" },
+                             { id: 5,
+                               value: "-0" }];
+        try {
+          const data = await sendPostRequest(good_str, url);
+          console.log("expected good str", data);
+        } catch(e) {
+          console.log(e);
+        }
+        let bad_str = {};
+        bad_str["id"] = "36aewrh46GNJO8wewQWGt2";
+        bad_str["params"] = [{ id: 1,
+                               value: "3g3" },
+                             { id: 2,
+                               high_alarm_value: "-20" },
+                             { id: 3,
+                               high_alarm_value: "24469924778" },
+                             { id: 4,
+                               high_alarm_value: "0.20" },
+                             { id: 5,
+                               value: "-0" }];
+        try {
+          const data = await sendPostRequest(bad_str, url);
+        } catch(e) {
+          console.log("expect bad str");
+          console.log(e);
+        }
+        let bad_id = {};
+        bad_id["params"] = [{ id: 1,
+                               value: 33 },
+                             { id: 2,
+                               high_alarm_value: -20 },
+                             { id: 3,
+                               high_alarm_value: 24469924778 },
+                             { id: 4,
+                               high_alarm_value: 0.20 },
+                             { id: 5,
+                               value: -0 }];
+        try {
+          await sendPostRequest(bad_id, url);
+        } catch(e) {
+          console.log("expect empty id");
+          console.log(e);
+        }
+        let bad_len = {};
+        bad_len["id"] = "56aewrh46GNJO8wewQWGt2";
+        bad_len["params"] = [{ id: 1,
+                               value: 33 },
+                             { id: 5,
+                               value: -0 }];
+        try {
+          await sendPostRequest(bad_len, url);
+        } catch(e) {
+          console.log("expect bad count of sensors");
+          console.log(e);
+        }
+      }
+        
+      async function getReferenceTable(url) {
+        //const data = await sendGetRequest(url);
+        const data = await sendGetRequest(url);
+        console.log(JSON.stringify(data, null, 2));
+      }
+
+      async function getControls(url) {
+        //const data = await sendGetRequest(url);
+        const data = await sendGetRequest(url);
+        console.log(JSON.stringify(data, null, 2));
+      }
+
+      async function sendGetRequest(url) {
+        try {
+          let response = await fetch(url);
+          //console.log(response);
+          if (!response.ok) // or check for response.status
+            throw new Error(response.statusText);
+          const result = await response.json(); // or .json() or whatever
+          //let result = await response.text(); // or .json() or whatever
+          // process body
+          //console.log(result);
+          return result;
+        } catch (err) {
+          //console.log(err);
+          throw err;
+        }
+      }
+
+      function init() {
+        //controls = createControls();
+        //sendControls(controls, 'http://'+location.hostname+':8081/api/controls/');
+
+        //getControls('http://localhost:8081/api/controls/');
+        //getReferenceTable('http://localhost:8081/api/params/');
+        //testAlgoSet('http://localhost:8081/api/validate/');
+        initWebSocket();
+      }
+
+      function initWebSocket() {
+        if (!window.WebSocket) {
+          displayMessage("Your browser does not support WebSockets");
+          return;
+        }
+        
+        //console.log(location.hostname);
+        ws = new WebSocket('ws://'+location.hostname+':8080');
+        //ws = new WebSocket('ws://localhost:8080');
+
+        ws.onopen = () => {
+          console.log('websocket connected')
+          if (ws.readyState === WebSocket.OPEN) {
+            //ws.send('{"type":"first_request"}');
+          }
+        }
+
+        ws.onmessage = (ev) => {
+          const msg = JSON.parse(ev.data)
+          console.log(JSON.stringify(msg));
+          
+          switch (msg.type) {
+            case 'session_id':
+              sessionID = msg.sessionID
+              console.log('sessionID arrived: ', sessionID);
+              controls = createControls();
+              console.log('controls: ', controls);
+              sendControls(controls, 'http://'+location.hostname+':8081/api/controls/');
+              break;
+            case 'monitoring_result':
+              //validateValues(msg.monitoringResult);
+              break;
+            default:
+              //console.log("arrived data: ", JSON.stringify(msg));
+          }
+          
+        }
+
+        ws.onclose = (ev) => {
+          console.log(ev);
+        }
+
+        ws.onerror = (ev) => {
+          console.log(ev);
+        }
+        
+        function showAlert(outputs) {
+          items = [];
+          for(o of outputs){
+            items.push(...Object.values(o)); 
+          }
+          console.log("Output message: ", JSON.stringify(items));
+          alert(JSON.stringify(items));
+          //console.log("Output message: ", items);
+        }
+
+      }
+    </script>
+  </body>
+</html>

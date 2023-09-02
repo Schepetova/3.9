@@ -1,0 +1,31 @@
+DROP DATABASE IF EXISTS health_monitor;   
+CREATE DATABASE IF NOT EXISTS health_monitor;
+USE health_monitor; 
+
+DROP TABLE IF EXISTS controls; 
+CREATE TABLE IF NOT EXISTS controls (
+  description VARCHAR(100) NOT NULL,
+  type ENUM('complex', 'discrete') NOT NULL DEFAULT 'discrete',
+  PRIMARY KEY (description)
+)  ENGINE=INNODB;
+
+DROP TABLE IF EXISTS rules; 
+CREATE TABLE IF NOT EXISTS rules (
+  control_id VARCHAR(100) NOT NULL,
+  param_id INT NOT NULL,
+  check_low_param BOOLEAN NOT NULL DEFAULT true,
+  low_alarm_value FLOAT NOT NULL,
+  check_high_param BOOLEAN NOT NULL DEFAULT true,
+  high_alarm_value FLOAT NOT NULL,
+  INDEX control_ind (control_id),
+  FOREIGN KEY (control_id)
+    REFERENCES controls(description)
+    ON DELETE CASCADE
+)  ENGINE=INNODB;
+
+DROP TABLE IF EXISTS params; 
+CREATE TABLE IF NOT EXISTS params (
+  id INT NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  PRIMARY KEY (id)
+)  ENGINE=INNODB;
